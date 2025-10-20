@@ -155,8 +155,7 @@
     </div>
 
     <audio id="romanticMusic" loop>
-        <!-- === THAY ĐỔI ĐƯỜNG DẪN Ở ĐÂY === -->
-        <source src="nhac.mp3" type="audio/mpeg">
+        <!-- === THAY ĐỔI ĐƯỜNG DẪN Ở ĐÂY === --><source src="nhac.mp3" type="audio/mpeg">
     </audio>
 
     <script>
@@ -270,18 +269,19 @@
                 const heart = new THREE.Points(heartGeometry, heartMaterial);
                 scene.add(heart);
 
-                // --- Text Particles ("TRÀ") ---
+                // --- Text Particles ("HƯƠNG TRÀ") ---
                 const textPoints = generateTextPoints();
                 const textParticleCount = textPoints.length;
                 const textGeometry = new THREE.BufferGeometry();
                 const textFinalPositions = new Float32Array(textParticleCount * 3);
                 const textInitialPositions = new Float32Array(textParticleCount * 3);
                 const textColors = new Float32Array(textParticleCount * 3);
-                const textColor = new THREE.Color(0xffffee);
+                const textColor = new THREE.Color(0xffffee); // Màu vàng trắng cho chữ
 
                 for (let i = 0; i < textParticleCount; i++) {
                     const p = textPoints[i];
-                    textFinalPositions.set([p.x, p.y, (Math.random() - 0.5) * 2], i * 3);
+                    // Vị trí cuối cùng của chữ, điều chỉnh để nằm gọn trong trái tim
+                    textFinalPositions.set([p.x * 0.8, p.y * 0.8, (Math.random() - 0.5) * 1.5], i * 3); 
 
                     const radius = Math.random() * 100 + 20;
                     const theta = Math.random() * Math.PI * 2;
@@ -300,7 +300,7 @@
 
                 const textMaterial = new THREE.PointsMaterial({
                     vertexColors: true,
-                    size: isMobile ? 0.4 : 0.5,
+                    size: isMobile ? 0.4 : 0.5, // Kích thước hạt chữ
                     map: particleTexture,
                     blending: THREE.AdditiveBlending,
                     transparent: true,
@@ -318,15 +318,15 @@
                 let isPulsing = false;
                 setTimeout(() => {
                     isPulsing = true;
-                }, 4500);
+                }, 4500); // Bắt đầu nhịp đập sau khi hiệu ứng trái tim và chữ gần hoàn thành
 
                 function animate(time) {
                     TWEEN.update(time);
                     
                     if (isPulsing) {
-                        heart.rotation.y += 0.005;
+                        heart.rotation.y += 0.005; // Quay nhẹ trái tim
                         const scaleTime = Date.now() * 0.007;
-                        const scale = 1 + 0.08 * Math.abs(Math.sin(scaleTime));
+                        const scale = 1 + 0.08 * Math.abs(Math.sin(scaleTime)); // Hiệu ứng đập nhẹ nhàng
                         heart.scale.set(scale, scale, scale);
                     }
 
@@ -340,7 +340,7 @@
                     camera.aspect = window.innerWidth / window.innerHeight;
                     camera.updateProjectionMatrix();
                     renderer.setSize(window.innerWidth, window.innerHeight);
-});
+                });
             }
 
             function createSoftParticleTexture() {
@@ -377,39 +377,109 @@
                 }
             }
             
+            // Hàm tạo điểm cho chữ "HƯƠNG TRÀ"
             function generateTextPoints() {
                 const allPoints = [];
-                const letterSpacing = 8;
-                const scale = 0.9;
+                const scale = 0.3; 
+                const letterSpacing = 8.5; 
+                const pointsPerSegment = 50; 
 
-                const sampleLine = (p1, p2, count) => {
+                // Định nghĩa hình dạng các chữ cái và dấu theo phong cách lãng mạn hơn
+                const fontMap = {
+                    H: [ {t:'l', p1:{x:-3,y:5},p2:{x:-3,y:-5}}, {t:'l', p1:{x:3,y:5},p2:{x:3,y:-5}}, {t:'a', c:{x:0,y:0}, r:3.2, sA:Math.PI*0.9, eA:Math.PI*0.1, ccw:true} ], // Thanh ngang cong
+                    U: [ {t:'a', c:{x:0,y:-2}, r:3, sA:Math.PI, eA:2*Math.PI}, {t:'l', p1:{x:-3,y:-2}, p2:{x:-3,y:5}}, {t:'l', p1:{x:3,y:-2}, p2:{x:3,y:5}} ],
+                    O: [ {t:'a', c:{x:0,y:0}, r:4, sA:0, eA:2*Math.PI} ],
+                    N: [ {t:'l', p1:{x:-3,y:-5}, p2:{x:-3,y:5}}, {t:'l', p1:{x:-3,y:5}, p2:{x:3,y:-5}}, {t:'l', p1:{x:3,y:-5}, p2:{x:3,y:5}} ], // Giữ N đơn giản cho dễ đọc
+                    G: [ {t:'a', c:{x:0,y:0.5}, r:4.5, sA:Math.PI/2, eA:2.5*Math.PI}, {t:'l', p1:{x:4.5,y:0.5}, p2:{x:1,y:0.5}}, {t:'l', p1:{x:1,y:0.5}, p2:{x:1,y:-2}} ],
+                    T: [ {t:'l', p1:{x:0,y:-5}, p2:{x:0,y:5}}, {t:'a', c:{x:0,y:4}, r:4, sA:Math.PI*0.75, eA:Math.PI*0.25} ], // Thanh T cong
+                    R: [ {t:'l', p1:{x:-3,y:-5}, p2:{x:-3,y:5}}, {t:'a', c:{x:-0.5,y:2.5}, r:2.5, sA:-Math.PI/2, eA:Math.PI/2}, {t:'l', p1:{x:-0.5,y:0}, p2:{x:3,y:-5}} ],
+                    A: [ {t:'l', p1:{x:-3,y:-5}, p2:{x:0,y:5}}, {t:'l', p1:{x:0,y:5}, p2:{x:3,y:-5}}, {t:'l', p1:{x:-1.5,y:-1}, p2:{x:1.5,y:-1}} ],
+                    ' ': [], // Xử lý khoảng trắng
+                    // Dấu
+                    MOC: [ {t:'a', c:{x:2.5,y:6}, r:1, sA:Math.PI*0.5, eA:Math.PI*1.5, ccw:true} ], // Dấu móc cong mềm mại
+                    HUYEN: [ {t:'l', p1:{x:-1.5,y:6.5}, p2:{x:1.5,y:5}}] // Dấu huyền (ĐÃ SỬA)
+                };
+
+                const charMap = {
+                    'Ư': { base: 'U', diacritics: ['MOC'] },
+                    'Ơ': { base: 'O', diacritics: ['MOC'] },
+                    'À': { base: 'A', diacritics: ['HUYEN'] }
+                };
+                
+                const getPoints = (shape, offsetX, offsetY) => {
                     const points = [];
+                    const count = (shape.t === 'a') ? pointsPerSegment * 2 : pointsPerSegment;
                     for (let i = 0; i < count; i++) {
                         const t = i / (count - 1);
-                        points.push({ x: p1.x * (1 - t) + p2.x * t, y: p1.y * (1 - t) + p2.y * t });
+                        let x, y;
+                        if (shape.t === 'l') { // line
+                            x = shape.p1.x * (1 - t) + shape.p2.x * t;
+                            y = shape.p1.y * (1 - t) + shape.p2.y * t;
+                        } else { // arc
+                            const angle = shape.sA + t * (shape.eA - shape.sA);
+                            x = shape.c.x + shape.r * Math.cos(angle);
+                            y = shape.c.y + shape.r * Math.sin(angle);
+                        }
+                        points.push({ x: (x + offsetX) * scale, y: (y + offsetY) * scale });
                     }
                     return points;
                 };
 
-                // T (offset by -letterSpacing)
-                const t_v = sampleLine({x:0, y:-5}, {x:0, y:5}, 150);
-                const t_h = sampleLine({x:-4, y:5}, {x:4, y:5}, 150);
-                [...t_v, ...t_h].forEach(p => allPoints.push({ x: (p.x - letterSpacing) * scale, y: p.y * scale }));
+                const text = "HƯƠNG TRÀ";
+                const totalWordSpacing = 4; // Khoảng cách giữa HƯƠNG và TRÀ
+                
+                const word1 = "HƯƠNG";
+                const word2 = "TRÀ";
 
-                // R (centered)
-                const r_v = sampleLine({x:-3, y:-5}, {x:-3, y:5}, 150);
-                const r_l = sampleLine({x:-1.5, y:0}, {x:3, y:-5}, 100);
-                const r_t = sampleLine({x:-3, y:5}, {x:2, y:5}, 80);
-                const r_c = sampleLine({x:2, y:5}, {x:2, y:0}, 80);
-                const r_b = sampleLine({x:2, y:0}, {x:-1.5, y:0}, 70);
-                [...r_v, ...r_l, ...r_t, ...r_c, ...r_b].forEach(p => allPoints.push({ x: p.x * scale, y: p.y * scale }));
+                const word1Width = (word1.length - 1) * letterSpacing;
+                const word2Width = (word2.length - 1) * letterSpacing;
+                
+                // Tính toán tổng chiều dài của cả cụm từ để căn giữa
+                const totalTextWidth = word1Width + totalWordSpacing + word2Width;
+                let currentOffsetX = -totalTextWidth / 2; // Bắt đầu từ vị trí cân bằng
 
-                // À (offset by +letterSpacing)
-                const a_l1 = sampleLine({x:0, y:5}, {x:-4, y:-5}, 150);
-                const a_l2 = sampleLine({x:0, y:5}, {x:4, y:-5}, 150);
-                const a_bar = sampleLine({x:-2, y:-1}, {x:2, y:-1}, 100);
-                const accent = sampleLine({x:1, y:6}, {x:-1, y:7.5}, 80);
-                [...a_l1, ...a_l2, ...a_bar, ...accent].forEach(p => allPoints.push({ x: (p.x + letterSpacing) * scale, y: p.y * scale }));
+                const startY = 0; 
+
+                // Xử lý word1 "HƯƠNG"
+                for (const char of word1) {
+                    const charDef = charMap[char] || { base: char, diacritics: [] };
+                    
+                    const baseShapes = fontMap[charDef.base];
+                    if (baseShapes) {
+                        baseShapes.forEach(shape => allPoints.push(...getPoints(shape, currentOffsetX, startY)));
+                    }
+                    charDef.diacritics.forEach(diacriticKey => {
+                        const diacriticShapes = fontMap[diacriticKey];
+                        if (diacriticShapes) {
+                            diacriticShapes.forEach(shape => allPoints.push(...getPoints(shape, currentOffsetX, startY)));
+                        }
+                    });
+                    currentOffsetX += letterSpacing;
+                }
+
+                // Thêm khoảng cách giữa 2 từ
+                currentOffsetX += totalWordSpacing; 
+
+                // Xử lý word2 "TRÀ"
+                for (const char of word2) {
+                     if (char === ' ') {
+                        currentOffsetX += letterSpacing; 
+                        continue;
+                    }
+                    const charDef = charMap[char] || { base: char, diacritics: [] };
+                    
+                    const baseShapes = fontMap[charDef.base];
+                    if (baseShapes) {
+                        baseShapes.forEach(shape => allPoints.push(...getPoints(shape, currentOffsetX, startY)));
+                    }
+                    charDef.diacritics.forEach(diacriticKey => {
+                        const diacriticShapes = fontMap[diacriticKey];
+                        if (diacriticShapes) {
+                            diacriticShapes.forEach(shape => allPoints.push(...getPoints(shape, currentOffsetX, startY)));
+                        }
+                    });
+                    currentOffsetX += letterSpacing;
+                }
 
                 return allPoints;
             }
