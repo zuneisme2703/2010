@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Gửi Em, Tình Yêu Của Anh ❤️</title>
+    <!-- Thư viện 3D --><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Thư viện cho animation mượt mà --><script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <style>
+        /* ... CSS code remains the same ... */
+        :root {
+            --star-color: #ffffff;
+            --heart-color-light: #ff7f7f;
+            --heart-color-dark: #ff3366;
+            --duration: 1.5s;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        .night-sky {
+            position: absolute;
+            top:0; left:0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .night-sky.fade-out {
+            opacity: 0;
+        }
+
+        .star {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            height: 2px;
+            width: 2px;
+            background-color: var(--star-color);
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite;
+        }
+
+        @keyframes twinkle {
+            0% { transform: scale(1, 1); opacity: 1; }
+            50% { transform: scale(1.2, 1.2); opacity: 0.5; }
+            100% { transform: scale(1, 1); opacity: 1; }
+        }
+
+        .greeting-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            color: white;
+            background: linear-gradient(45deg, #f83c3c, #ff7b7b);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 59, 59, 0.7);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .greeting-button:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 0 35px rgba(255, 59, 59, 1);
+        }
+
+        .greeting-button.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .message-container {
+            position: absolute;
+            left: 50%;
+            width: 100%;
+            text-align: center;
+            z-index: 50;
+            transform: translate(-50%, 100vh);
+            visibility: hidden;
+        }
+        
+        .message-container.animate {
+            visibility: visible;
+            animation: movie-credits-scroll 25s linear forwards; /* Tăng thời gian trôi chữ */
+        }
+
+        .message-container p {
+            font-size: 2.5rem;
+            color: #fff;
+            margin: 20px 0;
+            text-shadow: 0 0 15px rgba(255, 199, 246, 0.8);
+        }
+
+        @keyframes movie-credits-scroll {
+            from {
+                transform: translate(-50%, 100vh);
+            }
+            to {
+                transform: translate(-50%, -100%);
+            }
+        }
+        
+        #heartCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .message-container p {
+                font-size: 1.8rem;
+            }
+            .greeting-button {
+                 font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .message-container p {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="night-sky"></div>
+    <canvas id="heartCanvas"></canvas>
+    <button class="greeting-button" id="greetingButton">🎁 Mở quà của em 🎁</button>
+
+    <div class="message-container" id="messageContainer">
+        <p>Gửi em, người đã mang ánh nắng vào thế giới của anh,</p>
+        <p>Trước khi có em, cuộc sống anh chỉ là những gam màu đơn sắc.</p>
+        <p>Từ ngày em đến, mỗi khoảnh khắc đều trở nên rực rỡ,</p>
+        <p>mỗi phút giây đều biến thành bản tình ca ngọt ngào.</p>
+        <p>Chúc em ngày 20/10 ngập tràn hạnh phúc và luôn là vì sao sáng nhất,</p>
+        <p>... không chỉ trong vũ trụ này, mà cả trong vũ trụ của riêng anh.</p>
+        <p>Yêu em vô cùng ❤️</p>
+    </div>
+
+    <audio id="romanticMusic" loop>
+        <!-- === THAY ĐỔI ĐƯỜNG DẪN Ở ĐÂY === -->
+        <source src="nhac.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const nightSky = document.querySelector('.night-sky');
+            const button = document.getElementById('greetingButton');
+            const messageContainer = document.getElementById('messageContainer');
+            const heartCanvas = document.getElementById('heartCanvas');
+            const music = document.getElementById('romanticMusic');
+            const starCount = 400;
+
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const duration = Math.random() * 1.5 + 1;
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDuration = `${duration}s`;
+                star.style.animationDelay = `${Math.random() * duration}s`;
+                nightSky.appendChild(star);
+            }
+            
+            button.addEventListener('click', () => {
+                button.classList.add('hidden');
+                
+                // --- NHẠC TĂNG ÂM LƯỢNG TỪ TỪ ---
+                music.volume = 0;
+                music.play().catch(error => console.log("User must interact with the document first for audio to play."));
+
+                let musicVolume = 0;
+                const fadeAudioIn = setInterval(() => {
+                    if (musicVolume < 1.0) {
+                        musicVolume += 0.05;
+                        if (musicVolume > 1.0) musicVolume = 1.0;
+                        music.volume = musicVolume;
+                    } else {
+                        clearInterval(fadeAudioIn);
+                    }
+                }, 150); // Tăng âm lượng mỗi 150ms
+
+                messageContainer.classList.add('animate');
+                
+                messageContainer.addEventListener('animationend', () => {
+                    startHeartSequence();
+                }, { once: true });
+            });
+
+            function startHeartSequence() {
+                initAndAnimateHeart();
+            }
+            
+            function initAndAnimateHeart() {
+                heartCanvas.style.display = 'block';
+
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ canvas: heartCanvas, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+
+                const isMobile = window.innerWidth <= 768;
+                const particleCount = isMobile ? 15000 : 20000; 
+                camera.position.z = isMobile ? 55 : 45; 
+                const particleSize = isMobile ? 0.55 : 0.6;
+
+                // --- Heart Particles ---
+                const heartGeometry = new THREE.BufferGeometry();
+                const finalPositions = new Float32Array(particleCount * 3);
+                const initialPositions = new Float32Array(particleCount * 3);
+                const colors = new Float32Array(particleCount * 3);
+
+                const heartColor1 = new THREE.Color(0xff88aa); 
+                const heartColor2 = new THREE.Color(0xff3366); 
+
+                for (let i = 0; i < particleCount; i++) {
+                    const t = Math.random() * 2 * Math.PI;
+                    const x = 16 * Math.pow(Math.sin(t), 3);
+                    const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                    const z = (Math.random() - 0.5) * 2;
+                    const randomOffset = Math.random() * 0.15 + 0.85;
+
+                    finalPositions.set([x * randomOffset, y * randomOffset, z], i * 3);
+
+                    const radius = Math.random() * 200 + 50;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
+                    const ix = radius * Math.sin(phi) * Math.cos(theta);
+                    const iy = radius * Math.sin(phi) * Math.sin(theta);
+                    const iz = radius * Math.cos(phi);
+                    initialPositions.set([ix, iy, iz], i * 3);
+
+                    const color = heartColor1.clone().lerp(heartColor2, Math.random());
+                    colors.set([color.r, color.g, color.b], i * 3);
+                }
+
+                heartGeometry.setAttribute('position', new THREE.BufferAttribute(initialPositions, 3));
+                heartGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                const particleTexture = createSoftParticleTexture();
+
+                const heartMaterial = new THREE.PointsMaterial({
+                    vertexColors: true, 
+                    size: particleSize,
+                    map: particleTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    alphaTest: 0.001,
+                    opacity: 0.9,
+                    sizeAttenuation: true
+                });
+
+                const heart = new THREE.Points(heartGeometry, heartMaterial);
+                scene.add(heart);
+
+                // --- Text Particles ("TRÀ") ---
+                const textPoints = generateTextPoints();
+                const textParticleCount = textPoints.length;
+                const textGeometry = new THREE.BufferGeometry();
+                const textFinalPositions = new Float32Array(textParticleCount * 3);
+                const textInitialPositions = new Float32Array(textParticleCount * 3);
+                const textColors = new Float32Array(textParticleCount * 3);
+                const textColor = new THREE.Color(0xffffee);
+
+                for (let i = 0; i < textParticleCount; i++) {
+                    const p = textPoints[i];
+                    textFinalPositions.set([p.x, p.y, (Math.random() - 0.5) * 2], i * 3);
+
+                    const radius = Math.random() * 100 + 20;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
+                    textInitialPositions.set([
+                        radius * Math.sin(phi) * Math.cos(theta),
+                        radius * Math.sin(phi) * Math.sin(theta),
+                        radius * Math.cos(phi)
+                    ], i * 3);
+                    
+                    textColors.set([textColor.r, textColor.g, textColor.b], i * 3);
+                }
+
+                textGeometry.setAttribute('position', new THREE.BufferAttribute(textInitialPositions, 3));
+                textGeometry.setAttribute('color', new THREE.BufferAttribute(textColors, 3));
+
+                const textMaterial = new THREE.PointsMaterial({
+                    vertexColors: true,
+                    size: isMobile ? 0.4 : 0.5,
+                    map: particleTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    opacity: 1,
+                    sizeAttenuation: true
+                });
+
+                const textParticles = new THREE.Points(textGeometry, textMaterial);
+                heart.add(textParticles);
+
+                // --- Animations ---
+                animateParticles(heartGeometry.getAttribute('position'), initialPositions, finalPositions, 0);
+                animateParticles(textGeometry.getAttribute('position'), textInitialPositions, textFinalPositions, 1000);
+                
+                let isPulsing = false;
+                setTimeout(() => {
+                    isPulsing = true;
+                }, 4500);
+
+                function animate(time) {
+                    TWEEN.update(time);
+                    
+                    if (isPulsing) {
+                        heart.rotation.y += 0.005;
+                        const scaleTime = Date.now() * 0.007;
+                        const scale = 1 + 0.08 * Math.abs(Math.sin(scaleTime));
+                        heart.scale.set(scale, scale, scale);
+                    }
+
+                    renderer.render(scene, camera);
+                    requestAnimationFrame(animate);
+                }
+                
+                animate();
+
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+            }
+
+            function createSoftParticleTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 128; 
+                canvas.height = 128;
+                const context = canvas.getContext('2d');
+                const gradient = context.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
+                gradient.addColorStop(0, 'rgba(255,255,255,1)');
+                gradient.addColorStop(0.3, 'rgba(255,255,255,0.8)');
+                gradient.addColorStop(0.6, 'rgba(255,255,255,0.4)');
+                gradient.addColorStop(1, 'rgba(255,255,255,0)');
+                context.fillStyle = gradient;
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                return new THREE.CanvasTexture(canvas);
+            }
+
+            function animateParticles(attribute, initial, final, startDelay) {
+                const count = attribute.count;
+                 for (let i = 0; i < count; i++) {
+                    const i3 = i * 3;
+                    const from = { x: initial[i3], y: initial[i3 + 1], z: initial[i3 + 2] };
+                    const to = { x: final[i3], y: final[i3 + 1], z: final[i3 + 2] };
+                    
+                    new TWEEN.Tween(from)
+                        .to(to, 3000)
+                        .easing(TWEEN.Easing.Quadratic.InOut)
+                        .delay(Math.random() * 1500 + startDelay)
+                        .onUpdate(() => {
+                            attribute.setXYZ(i, from.x, from.y, from.z);
+                            attribute.needsUpdate = true;
+                        })
+                        .start();
+                }
+            }
+            
+            function generateTextPoints() {
+                const allPoints = [];
+                const letterSpacing = 8;
+                const scale = 0.9;
+
+                const sampleLine = (p1, p2, count) => {
+                    const points = [];
+                    for (let i = 0; i < count; i++) {
+                        const t = i / (count - 1);
+                        points.push({ x: p1.x * (1 - t) + p2.x * t, y: p1.y * (1 - t) + p2.y * t });
+                    }
+                    return points;
+                };
+
+                // T (offset by -letterSpacing)
+                const t_v = sampleLine({x:0, y:-5}, {x:0, y:5}, 150);
+                const t_h = sampleLine({x:-4, y:5}, {x:4, y:5}, 150);
+                [...t_v, ...t_h].forEach(p => allPoints.push({ x: (p.x - letterSpacing) * scale, y: p.y * scale }));
+
+                // R (centered)
+                const r_v = sampleLine({x:-3, y:-5}, {x:-3, y:5}, 150);
+                const r_l = sampleLine({x:-1.5, y:0}, {x:3, y:-5}, 100);
+                const r_t = sampleLine({x:-3, y:5}, {x:2, y:5}, 80);
+                const r_c = sampleLine({x:2, y:5}, {x:2, y:0}, 80);
+                const r_b = sampleLine({x:2, y:0}, {x:-1.5, y:0}, 70);
+                [...r_v, ...r_l, ...r_t, ...r_c, ...r_b].forEach(p => allPoints.push({ x: p.x * scale, y: p.y * scale }));
+
+                // À (offset by +letterSpacing)
+                const a_l1 = sampleLine({x:0, y:5}, {x:-4, y:-5}, 150);
+                const a_l2 = sampleLine({x:0, y:5}, {x:4, y:-5}, 150);
+                const a_bar = sampleLine({x:-2, y:-1}, {x:2, y:-1}, 100);
+                const accent = sampleLine({x:1, y:6}, {x:-1, y:7.5}, 80);
+                [...a_l1, ...a_l2, ...a_bar, ...accent].forEach(p => allPoints.push({ x: (p.x + letterSpacing) * scale, y: p.y * scale }));
+
+                return allPoints;
+            }
+        });
+    </script>
+</body>
+</html>
+
